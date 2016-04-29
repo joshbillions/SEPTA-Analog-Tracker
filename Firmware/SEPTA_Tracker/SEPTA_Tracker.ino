@@ -12,11 +12,12 @@ const char http_site[] = "www3.septa.org";
 const int http_port = 80;
 
 // Pin definitions
-#define kControlTestPin   5
-#define kGoodPin          0
-#define kBadPin           4
-#define kSwitchPin        13
-#define kButtonPin        12
+#define kGauge1   16
+#define kGauge2   12
+#define kGauge3   13
+#define kGauge4   4
+#define kGauge5   0
+#define kGauge6   5
 
 // Global variables
 WiFiClient client;
@@ -49,19 +50,26 @@ void setup() {
   Serial.begin(115200);
   Serial.println("\n\n\nSEPTA Tracker...READY");
 
-  // Set up LED for debugging
-  pinMode(kControlTestPin, OUTPUT);
-  pinMode(kGoodPin, OUTPUT);
-  pinMode(kBadPin, OUTPUT);
-  pinMode(kSwitchPin, INPUT_PULLUP);
-  pinMode(kButtonPin, INPUT_PULLUP);
+  pinMode(kGauge1, OUTPUT);
+  pinMode(kGauge2, OUTPUT);
+  pinMode(kGauge3, OUTPUT);
+  pinMode(kGauge4, OUTPUT);
+  pinMode(kGauge5, OUTPUT);
+  pinMode(kGauge6, OUTPUT);
 
-  turnOffIndicators();
+   turnOnAllGauges();
+
+  for(int i = 0; i < 1023; i++){
+    setAllGaugesPWM(i);
+    Serial.println(i);
+    delay(50);
+  }
+
 }
 
 void loop() {
   //Look for switch settings
-  switchUp = digitalRead(kSwitchPin);
+  //switchUp = digitalRead(kSwitchPin);
 
   //Clear Server Response Buffer
   clearServerResponseBuffer();
@@ -73,7 +81,7 @@ void loop() {
   if ( !getPage() ) {
     Serial.println("GET request failed");
     needsImmediateRefresh = true;
-    turnOffIndicators();
+
   } else {
     delay(1000);
   }
@@ -96,7 +104,7 @@ void loop() {
     }
 
     // Turn off LED
-    digitalWrite(kControlTestPin, LOW);
+    //digitalWrite(kControlTestPin, LOW);
   }
 
   if (!needsImmediateRefresh) {
@@ -110,23 +118,45 @@ void loop() {
 
 #pragma MARK - Indicators
 
-void turnOffIndicators(){
-  digitalWrite(kGoodPin, LOW);
-  digitalWrite(kBadPin, LOW);
+void turnOffAllGauges(){
+  digitalWrite(kGauge1, LOW);
+  digitalWrite(kGauge2, LOW);
+  digitalWrite(kGauge3, LOW);
+  digitalWrite(kGauge4, LOW);
+  digitalWrite(kGauge5, LOW);
+  digitalWrite(kGauge6, LOW);
+}
+
+void turnOnAllGauges(){
+  digitalWrite(kGauge1, HIGH);
+  digitalWrite(kGauge2, HIGH);
+  digitalWrite(kGauge3, HIGH);
+  digitalWrite(kGauge4, HIGH);
+  digitalWrite(kGauge5, HIGH);
+  digitalWrite(kGauge6, HIGH);
+}
+
+void setAllGaugesPWM(int pwmValue){
+  analogWrite(kGauge1, pwmValue);
+  analogWrite(kGauge2, pwmValue);
+  analogWrite(kGauge3, pwmValue);
+  analogWrite(kGauge4, pwmValue);
+  analogWrite(kGauge5, pwmValue);
+  analogWrite(kGauge6, pwmValue);
 }
 
 void updateIndicators() {
-  digitalWrite(kBadPin, LOW);
-  digitalWrite(kGoodPin, LOW);
+  //digitalWrite(kBadPin, LOW);
+  //digitalWrite(kGoodPin, LOW);
   if (minutesUntilNextArrival >= kAcceptableWaitTime || minutesUntilNextArrival <= kTooSoonTime ) {
     Serial.println("Don't leave yet");
-    digitalWrite(kBadPin, HIGH);
+    //digitalWrite(kBadPin, HIGH);
   } else {
     if (minutesUntilNextArrival <= kTooSoonTime + 2) {
       Serial.println("Leave Now!");
-      digitalWrite(kGoodPin, HIGH);
+      //digitalWrite(kGoodPin, HIGH);
     } else {
-      digitalWrite(kGoodPin, HIGH);
+      //digitalWrite(kGoodPin, HIGH);
     }
   }
 
@@ -304,13 +334,13 @@ void connectWiFi() {
 
   // Blink LED while we wait for WiFi connection
   while ( WiFi.status() != WL_CONNECTED ) {
-    digitalWrite(kControlTestPin, led_status);
+    //digitalWrite(kControlTestPin, led_status);
     led_status ^= 0x01;
     delay(100);
   }
 
   // Turn LED on when we are connected
-  digitalWrite(kControlTestPin, HIGH);
+  //digitalWrite(kControlTestPin, HIGH);
   Serial.println("WiFi Connected");
 }
 
